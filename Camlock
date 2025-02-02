@@ -2,6 +2,7 @@ local camera = workspace.CurrentCamera
 local functions = {}
 local Keybindactive = false
 local Camlockactive = false
+local Players = game:GetService("Players")
 
 do
     functions.getMouseposition = function()
@@ -52,6 +53,45 @@ game:GetService("RunService").Heartbeat:Connect(function()
     camera.CFrame = CFrame.new(camera.CFrame.Position, Target.Character.HumanoidRootPart.Position)
 end)
 
+local highlight = Instance.new("Highlight") -- Create a new highlight
+highlight.Name = "Highlight" -- Set the name of the highlight
+highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- Set the depth mode of the highlight
+
+for i, v in pairs(Players:GetPlayers()) do -- Loop through all players
+    repeat wait() until v.Character -- Wait until the player has a character
+	if v == Players.LocalPlayer then continue end -- Skip local player
+
+    if v.Character and v.Character:FindFirstChild("HumanoidRootPart") and not v.Character:FindFirstChild("Highlight") then -- Check if the player has a highlight
+        local highlightClone = highlight:Clone() -- Clone the highlight
+        highlightClone.Adornee = v. Character -- Set the adornee of the highlight
+        highlightClone.Parent = v.Character -- Set the parent of the highlight
+    end
+
+	v.CharacterAdded:Connect(function()
+    	if v.Character and v.Character:FindFirstChild("HumanoidRootPart") and not v.Character:FindFirstChild("Highlight") then -- Check if the player has a highlight
+			local highlightClone = highlight:Clone() -- Clone the highlight
+			highlightClone.Adornee = v.Character -- Set the adornee of the highlight
+			highlightClone.Parent = v.Character -- Set the parent of the highlight
+		end
+	end)
+end
+
+game.Players.PlayerAdded:Connect(function(player) -- When a player is added
+	player.CharacterAdded:Connect(function()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and not player.Character:FindFirstChild("Highlight") then -- Check if the player has a highlight
+			local highlightClone = highlight:Clone() -- Clone the highlight
+			highlightClone.Adornee = player.Character -- Set the adornee of the highlight
+			highlightClone.Parent = player.Character -- Set the parent of the highlight
+		end
+	end)
+end)
+
+game.Players.PlayerRemoving:Connect(function(playerRemoved) -- When a player is removed
+	if playerRemoved.Character and playerRemoved.Character.HumanoidRootPart and playerRemoved.Character:FindFirstChild("Highlight") then
+    	playerRemoved.Character.HumanoidRootPart:FindFirstChild("Highlight"):Destroy() -- Destroy the highlight
+	end
+end)
+
 local Material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
 
 local X = Material.Load({
@@ -70,6 +110,19 @@ local B = Y.Toggle({
 	Text = "Camlock",
 	Callback = function(Value)
         Camlockactive = Value
+	end,
+	Enabled = false
+})
+
+local C = Y.Toggle({
+	Text = "ESP",
+	Callback = function(Value)
+		print(Value)
+        for i, v in pairs(Players:GetPlayers()) do 
+            if v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Highlight") then 
+				v.Character.Highlight.Enabled = Value 
+            end
+        end
 	end,
 	Enabled = false
 })
